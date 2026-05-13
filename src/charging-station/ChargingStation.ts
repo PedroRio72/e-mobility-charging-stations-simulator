@@ -100,7 +100,6 @@ import {
   logPrefix,
   mergeDeepRight,
   min,
-  once,
   promiseWithTimeout,
   secureRandom,
   sleep,
@@ -120,16 +119,14 @@ import {
   buildTemplateName,
   checkChargingStationState,
   checkConfiguration,
-  checkConnectorsConfiguration,
-  checkEvsesConfiguration,
   checkStationInfoConnectorStatus,
-  checkTemplate,
   createSerialNumber,
   getAmperageLimitationUnitDivider,
   getBootConnectorStatus,
   getChargingStationChargingProfilesLimit,
   getChargingStationId,
   getConnectorChargingProfilesLimit,
+  getConnectorsConfiguration,
   getDefaultConnectorMaximumPower,
   getDefaultVoltageOut,
   getHashId,
@@ -144,7 +141,6 @@ import {
   setChargingStationOptions,
   stationTemplateToStationInfo,
   validateStationInfo,
-  warnTemplateKeysDeprecation,
 } from './Helpers.js'
 import { IdTagsCache } from './IdTagsCache.js'
 import {
@@ -160,6 +156,7 @@ import {
   stopRunningTransactions,
 } from './ocpp/index.js'
 import { SharedLRUCache } from './SharedLRUCache.js'
+import { validateTemplate } from './TemplateValidation.js'
 
 const moduleName = 'ChargingStation'
 
@@ -1603,15 +1600,6 @@ export class ChargingStation extends EventEmitter {
       logger.error(`${this.logPrefix()} ${moduleName}.getStationInfoFromTemplate: ${errorMsg}`)
       throw new BaseError(errorMsg)
     }
-    checkTemplate(stationTemplate, this.logPrefix(), this.templateFile)
-    const warnTemplateKeysDeprecationOnce = once(warnTemplateKeysDeprecation)
-    warnTemplateKeysDeprecationOnce(stationTemplate, this.logPrefix(), this.templateFile)
-    if (stationTemplate.Connectors != null) {
-      checkConnectorsConfiguration(stationTemplate, this.logPrefix(), this.templateFile)
-    }
-    if (stationTemplate.Evses != null) {
-      checkEvsesConfiguration(stationTemplate, this.logPrefix(), this.templateFile)
-    }
     const stationInfo = stationTemplateToStationInfo(stationTemplate)
     stationInfo.templateIndex = this.index
     stationInfo.templateName = buildTemplateName(this.templateFile)
@@ -1655,8 +1643,10 @@ export class ChargingStation extends EventEmitter {
       } else {
         const measureId = `${FileType.ChargingStationTemplate} read`
         const beginId = PerformanceStatistics.beginMeasure(measureId)
-        template = JSON.parse(readFileSync(this.templateFile, 'utf8')) as ChargingStationTemplate
+        const rawContent = readFileSync(this.templateFile, 'utf8')
+        const parsed = JSON.parse(rawContent) as Record<string, unknown>
         PerformanceStatistics.endMeasure(measureId, beginId)
+        template = validateTemplate(parsed, this.templateFile)
         template.templateHash = hash(
           Constants.DEFAULT_HASH_ALGORITHM,
           JSON.stringify(template),
@@ -1783,7 +1773,6 @@ export class ChargingStation extends EventEmitter {
       logger.error(`${this.logPrefix()} ${moduleName}.initialize: ${errorMsg}`)
       throw new BaseError(errorMsg)
     }
-    checkTemplate(stationTemplate, this.logPrefix(), this.templateFile)
     this.configurationFile = join(
       dirname(this.templateFile.replace('station-templates', 'configurations')),
       `${getHashId(this.index, stationTemplate)}.json`
@@ -1868,7 +1857,7 @@ export class ChargingStation extends EventEmitter {
     }
     if (stationTemplate.Connectors != null) {
       const { configuredMaxConnectors, templateMaxAvailableConnectors, templateMaxConnectors } =
-        checkConnectorsConfiguration(stationTemplate, this.logPrefix(), this.templateFile)
+        getConnectorsConfiguration(stationTemplate)
       const connectorsConfigHash = hash(
         Constants.DEFAULT_HASH_ALGORITHM,
         `${JSON.stringify(stationTemplate.Connectors)}${configuredMaxConnectors.toString()}`,
