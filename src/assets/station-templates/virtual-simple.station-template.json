@@ -1,14 +1,16 @@
 {
   "idTagsFile": "idtags.json",
-  "baseName": "CS-BASIC",
+  "baseName": "CP-SAP",
   "chargePointModel": "Simulator simple",
-  "chargePointVendor": "Ovomaltin",
+  "chargePointVendor": "SAP e-mobility",
   "power": 50000,
   "powerUnit": "W",
   "powerSharedByConnectors": true,
   "currentOutType": "DC",
   "numberOfConnectors": 3,
   "randomConnectors": false,
+  "supervisionUser": "CP-SAP-00001",
+  "supervisionPassword": "sap123",
   "Configuration": {
     "configurationKey": [
       {
@@ -19,7 +21,7 @@
       {
         "key": "MeterValueSampleInterval",
         "readonly": false,
-        "value": "30"
+        "value": "10"
       },
       {
         "key": "SupportedFeatureProfiles",
