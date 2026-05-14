@@ -2,10 +2,9 @@
 
 ## [4.7.4](https://github.com/SAP/e-mobility-charging-stations-simulator/compare/cli@v4.7.3...cli@v4.7.4) (2026-05-14)
 
-
 ### 🧹 Chores
 
-* **cli:** Synchronize simulator-ui-ocpp-server versions
+- **cli:** Synchronize simulator-ui-ocpp-server versions
 
 ## [4.7.3](https://github.com/SAP/e-mobility-charging-stations-simulator/compare/cli@v4.7.2...cli@v4.7.3) (2026-05-13)
 

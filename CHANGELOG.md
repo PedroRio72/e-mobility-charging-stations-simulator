@@ -2,10 +2,9 @@
 
 ## [4.7.4](https://github.com/SAP/e-mobility-charging-stations-simulator/compare/simulator@v4.7.3...simulator@v4.7.4) (2026-05-14)
 
-
 ### 🤖 Automation
 
-* **sandcastle:** align task timeout with 10 critic rounds budget ([d49b95e](https://github.com/SAP/e-mobility-charging-stations-simulator/commit/d49b95e99e45bbdd955d16d9736f8824e059aafe))
+- **sandcastle:** align task timeout with 10 critic rounds budget ([d49b95e](https://github.com/SAP/e-mobility-charging-stations-simulator/commit/d49b95e99e45bbdd955d16d9736f8824e059aafe))
 
 ## [4.7.3](https://github.com/SAP/e-mobility-charging-stations-simulator/compare/simulator@v4.7.2...simulator@v4.7.3) (2026-05-13)
 
