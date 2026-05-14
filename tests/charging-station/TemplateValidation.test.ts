@@ -258,8 +258,9 @@ await describe('TemplateValidation', async () => {
   // Version gate
   // -------------------------------------------------------------------
   await describe('version gate', async () => {
-    await it('should accept missing $schemaVersion (defaults to 1)', () => {
+    await it('should accept missing $schemaVersion (treated as v0, migrated to v1)', t => {
       // Arrange
+      t.mock.method(logger, 'debug')
       const template = createMinimalTemplate()
       delete template.$schemaVersion
 
@@ -357,6 +358,35 @@ await describe('TemplateValidation', async () => {
       )
       // Migration should have logged warnings
       assert.ok(warnMock.mock.calls.length >= 4)
+    })
+
+    await it('should migrate unversioned templates with deprecated keys (regression)', t => {
+      // Arrange — no $schemaVersion field; uses deprecated keys
+      const warnMock = t.mock.method(logger, 'warn')
+      t.mock.method(logger, 'debug')
+      const template = {
+        authorizationFile: 'tags.json',
+        baseName: 'CS-LEGACY',
+        chargePointModel: 'LegacyModel',
+        chargePointVendor: 'LegacyVendor',
+        Connectors: { 0: {}, 1: {} },
+        supervisionUrl: 'ws://legacy:9000',
+      }
+
+      // Act
+      const result = validateTemplate(template, 'unversioned-legacy.json')
+
+      // Assert — deprecated keys renamed
+      assert.strictEqual(result.supervisionUrls, 'ws://legacy:9000')
+      assert.strictEqual(result.idTagsFile, 'tags.json')
+      // Old keys should not exist
+      assert.strictEqual((result as unknown as Record<string, unknown>).supervisionUrl, undefined)
+      assert.strictEqual(
+        (result as unknown as Record<string, unknown>).authorizationFile,
+        undefined
+      )
+      // Migration should have logged warnings for deprecated keys
+      assert.ok(warnMock.mock.calls.length >= 2)
     })
   })
 

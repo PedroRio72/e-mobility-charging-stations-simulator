@@ -21,14 +21,14 @@ const migrations: ReadonlyMap<number, MigrationFn> = new Map<number, MigrationFn
 /**
  * Coerces a raw `$schemaVersion` value to a valid integer.
  *
- * - Missing → 1 (default)
+ * - Missing → 0 (triggers v0→v1 migration for legacy unversioned templates)
  * - String "1" → number 1
  * - Negative, float, or future → throws
  * @param raw
  */
 export const coerceVersion = (raw: unknown): number => {
   if (raw == null) {
-    return 1
+    return 0
   }
   const version = typeof raw === 'string' ? Number(raw) : raw
   if (typeof version !== 'number' || !Number.isInteger(version)) {
